@@ -1,4 +1,4 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
 import auth from "../../firebase/firbase.config";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -13,10 +13,11 @@ const Register = () => {
 
     const handleRegister = e =>{
         e.preventDefault();
+        const name = e.target.name.value;
         const email = e.target.email.value;
         const password = e.target.password.value;
         const accepted = e.target.terms.checked;
-        console.log(email, password, accepted)
+        console.log(name, email, password, accepted)
 
         setRegisterError('');
         setSuccess('');
@@ -39,7 +40,21 @@ const Register = () => {
         createUserWithEmailAndPassword(auth, email, password)
         .then(result=>{
             console.log(result.user);
-            setSuccess('User Created Successfully')
+            setSuccess('User Created Successfully');
+
+            //Update profile
+            updateProfile(result.user,{
+                displayName: name,
+                photoURL: "https://example.com/jane-q-user/profile.jpg"
+            } )
+            .then(()=>console.log('Profile updated'))
+            .catch()
+
+            //Send verification email
+            sendEmailVerification(result.user)
+            .then(()=>{
+                alert('Please check your email and verify your account')
+            })
         })
         .catch(error =>{
             console.error(error)
@@ -53,6 +68,7 @@ const Register = () => {
             <div className="mx-auto md:w-1/2">
             <h2 className="text-2xl mb-8">Please Register</h2>
             <form onSubmit={handleRegister}>
+                <input className="mb-4 w-full border rounded py-2 px-4" type="text" name="name"  placeholder="Your Name" id="" required />
                 <input className="mb-4 w-full border rounded py-2 px-4" type="email" name="email"  placeholder="Email Address" id="" required />
                 <br />
 
